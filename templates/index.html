@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Simulation</title>
+    <link href="{{ url_for('static', filename='styles/style.css') }}" rel="stylesheet">
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        /* Improve the display of config fields */
+        .config-field {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .config-field label {
+            font-weight: bold;
+            margin-right: 10px;
+            width: 40%;
+        }
+        .config-field input {
+            width: 50%;
+        }
+        #config-fields, #csv-table {
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        let currentData = null; // This will store the current data being edited (config or CSV)
+
+        // Function to toggle between config JSON and historical runs based on radio button
+        function toggleForms() {
+            const configForm = document.getElementById("config-form");
+            const historicalForm = document.getElementById("historical-form");
+            const radioValue = document.querySelector('input[name="data-type"]:checked').value;
+
+            if (radioValue === "config") {
+                configForm.style.display = "block";
+                historicalForm.style.display = "none";
+            } else if (radioValue === "historical") {
+                configForm.style.display = "none";
+                historicalForm.style.display = "block";
+            }
+        }
+
+        // Function to read and display JSON as editable fields
+        function handleConfigFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const parsedJson = JSON.parse(content);
+                    currentData = parsedJson;
+                    displayConfigFields(parsedJson);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Function to display config fields with a professional layout
+        function displayConfigFields(configData) {
+            const configFieldsDiv = document.getElementById("config-fields");
+            configFieldsDiv.innerHTML = ""; // Clear any existing fields
+
+            for (const key in configData) {
+                if (configData.hasOwnProperty(key)) {
+                    const value = configData[key];
+
+                    const fieldDiv = document.createElement("div");
+                    fieldDiv.classList.add("config-field");
+
+                    const label = document.createElement("label");
+                    label.textContent = key;
+
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.name = key;
+                    input.value = value;
+
+                    fieldDiv.appendChild(label);
+                    fieldDiv.appendChild(input);
+                    configFieldsDiv.appendChild(fieldDiv);
+                }
+            }
+        }
+
+        // Function to read and display CSV as a table for editing
+        function handleCsvFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    currentData = content;
+                    displayCsvContent(content);
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Function to display CSV content as editable rows with start and end date inputs
+        function displayCsvContent(csvContent) {
+            const rows = csvContent.split("\n").filter(row => row.trim() !== "").map(row => row.split(","));
+            const table = document.getElementById("csv-table");
+            table.innerHTML = ""; // Clear any existing table data
+
+            let tableContent = "<thead><tr>";
+            rows[0].forEach(header => {
+                tableContent += `<th>${header}</th>`;
+            });
+            tableContent += "</tr></thead><tbody>";
+
+            rows.slice(1).forEach((row, rowIndex) => {
+                tableContent += "<tr>";
+                row.forEach((cell, cellIndex) => {
+                    tableContent += `<td contenteditable='true' data-row="${rowIndex}" data-col="${cellIndex}">${cell.trim()}</td>`;
+                });
+                tableContent += "</tr>";
+            });
+            tableContent += "</tbody>";
+            table.innerHTML = tableContent;
+
+            // Start and End Date from config
+            const startDate = currentData ? currentData.start_date : "";
+            const endDate = currentData ? currentData.end_date : "";
+
+            document.getElementById("start-date").value = startDate || "";
+            document.getElementById("end-date").value = endDate || "";
+        }
+
+        // Function to gather form data and create a new JSON object
+        function gatherConfigData() {
+            const formData = new FormData(document.getElementById("config-edit-form"));
+            const configData = {};
+            formData.forEach((value, key) => {
+                configData[key] = value;
+            });
+
+            // Add start_date and end_date from the historical form
+            configData.start_date = document.getElementById("start-date").value;
+            configData.end_date = document.getElementById("end-date").value;
+
+            return configData;
+        }
+
+        // Function to gather updated CSV data from the table
+        function gatherCsvData() {
+            const table = document.getElementById("csv-table");
+            const rows = Array.from(table.rows).map(row => Array.from(row.cells).map(cell => cell.innerText.trim()));
+            const nonEmptyRows = rows.filter(row => row.some(cell => cell !== ""));
+            return nonEmptyRows.map(row => row.join(",")).join("\n");
+        }
+
+        // Function to save config JSON or historical CSV file
+        function saveFile() {
+            let content = "";
+            let fileName = "";
+            let blobType = "";
+
+            const selectedType = document.querySelector('input[name="data-type"]:checked').value;
+
+            if (selectedType === "config") {
+                content = JSON.stringify(gatherConfigData(), null, 2);
+                fileName = "config.json";
+                blobType = "application/json";
+            } else {
+                content = gatherCsvData();
+                fileName = "historical_runs.csv";
+                blobType = "text/csv";
+            }
+
+            const blob = new Blob([content], { type: blobType });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+        }
+
+        function generatePlan() {
+            const selectedType = document.querySelector('input[name="data-type"]:checked').value;
+            let dataToSend = {};
+
+            if (selectedType === "config") {
+                dataToSend = {
+                    type: selectedType,
+                    config: gatherConfigData()  // Send config JSON
+                };
+            } else {
+                dataToSend = {
+                    type: selectedType,
+                    csv: gatherCsvData(),  // Send CSV data
+                    start_date: document.getElementById("start-date").value,
+                    end_date: document.getElementById("end-date").value
+                };
+            }
+
+            // Send data to Flask app
+            fetch('/generate_plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend)
+            }).then(response => {
+                if (response.ok) {
+                    return response.text();  // Get the response text (HTML)
+                }
+                throw new Error("Error generating plan");
+            }).then(html => {
+                // Replace the current page's content with the results HTML
+                const newWindow = window.open();
+                newWindow.document.open();
+                newWindow.document.write(html);
+                newWindow.document.close();
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        function addRow() {
+            const table = document.getElementById("csv-table").getElementsByTagName('tbody')[0];
+            if (table) {
+                const newRow = table.insertRow();
+                const columnCount = table.rows[0].cells.length;
+                for (let i = 0; i < columnCount; i++) {
+                    const cell = newRow.insertCell(i);
+                    cell.contentEditable = "true";
+                    cell.innerText = "";
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simple Running Planner</h1>
+        </header>
+
+        <!-- Radio Buttons to choose data type -->
+        <div class="form-group">
+            <label>Choose input type:</label>
+            <label><input type="radio" name="data-type" value="config" onclick="toggleForms()" checked> Config JSON</label>
+            <label><input type="radio" name="data-type" value="historical" onclick="toggleForms()"> Historical Runs CSV</label>
+        </div>
+        <div class="button-container">
+            <!-- Buttons for saving file and generating plan -->
+            <button onclick="saveFile()">Save File</button>
+            <button onclick="generatePlan()">Generate Plan</button>
+        </div>
+
+        <!-- Config Form -->
+        <div id="config-form">
+            <h2>Config JSON Input</h2>
+            <div class="form-group">
+                <label for="config_input">Select Config JSON File:</label>
+                <input type="file" id="config_input" name="config_input" accept=".json" onchange="handleConfigFile(event)">
+            </div>
+            <form id="config-edit-form">
+                <div id="config-fields"></div>
+            </form>
+        </div>
+
+        <!-- Historical CSV Form -->
+        <div id="historical-form" style="display: none;">
+            <h2>Historical Runs CSV Input</h2>
+            <div class="form-group">
+                <label for="csv_input">Select Historical Runs CSV File:</label>
+                <input type="file" id="csv_input" name="csv_input" accept=".csv" onchange="handleCsvFile(event)">
+            </div>
+
+            <div class="form-group">
+                <label for="start-date">Start Date:</label>
+                <input type="date" id="start-date">
+            </div>
+
+            <div class="form-group">
+                <label for="end-date">End Date:</label>
+                <input type="date" id="end-date">
+            </div>
+            <button onclick="addRow()">Add Row</button>
+            <table id="csv-table"></table>
+        </div>
+    </div>
+</body>
+</html>

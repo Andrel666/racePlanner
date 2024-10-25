@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Plan Results</title>
+    <link href="{{ url_for('static', filename='styles/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Race Preparation Training Plan</h1>
+        </header>
+
+        <!-- Plan Description -->
+        <section class="plan-description">
+            <h2>Race Plan</h2>
+            {% for session in race_plan %}
+                <p><strong>{{ session['type'] }}</strong> {{ session['distance'] }} at {{ session['pace'] }} in {{ session['time'] }}</p>
+            {% endfor %}
+            <p><strong>Predicted Run Time: </strong>{{ total_time['total_time'] }}</p>
+        </section>
+
+        <!-- Training Plan Table -->
+        {% for week_data in training_plan %}
+        <section class="week-plan">
+            <h2>Week {{ week_data['week'] }} - Sunday: {{ week_data['week_sunday'] }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Session Type</th>
+                        <th>Duration</th>
+                        <th>Avg HR</th>
+                        <th>Avg Power</th>
+                        <th>Pace (min/km)</th>
+                        <th>Distance (km)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in week_data['plan'] %}
+                    <tr>
+                        <td>{{ session['type'] }}</td>
+                        <td>{{ session['duration'] }}</td>
+                        <td>{{ session['avg_hr'] }}</td>
+                        <td>{{ session['avg_power'] }}</td>
+                        <td>{{ session['pace'] }}</td>
+                        <td>{{ session['distance'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <br>
+        {% endfor %}
+
+        <footer>
+            <a href="/">Go Back</a>
+        </footer>
+    </div>
+</body>
+</html>

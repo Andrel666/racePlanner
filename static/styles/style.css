@@ -1,0 +1,277 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+header h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 2.2rem;
+}
+
+/* Plan Description */
+.plan-description {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.plan-description h2 {
+    color: #2980b9;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.plan-description p {
+    font-size: 1.2rem;
+    color: #34495e;
+}
+
+/* Week Plan */
+.week-plan h2 {
+    color: #16a085;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background-color: #34495e;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+    transition: background-color 0.3s ease;
+}
+
+/* Form Styling */
+.fitness-form {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+input[type="file"],
+input[type="text"],
+input[type="date"],
+input[type="radio"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+input[type="radio"] {
+    width: auto;
+}
+
+label {
+    font-size: 1rem;
+    color: #555;
+}
+
+.submit-btn {
+    background-color: #5c67f2;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #4850cc;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 30px;
+}
+
+footer a {
+    text-decoration: none;
+    color: white;
+    background-color: #2980b9;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+footer a:hover {
+    background-color: #1f6395;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    .plan-description p,
+    .week-plan h2 {
+        font-size: 1rem;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    input[type="date"] {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .submit-btn {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .plan-description h2,
+    .week-plan h2 {
+        font-size: 1.2rem;
+    }
+
+    th, td {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    table, th, td {
+        font-size: 0.8rem;
+    }
+
+    input[type="file"],
+    input[type="text"],
+    input[type="date"] {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    .submit-btn {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Hidden forms (for toggling between file selection and form inputs) */
+.hidden-form {
+    display: none;
+}
+
+.selection-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.radio-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+/* Output Display Styling */
+.output-display {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    overflow-x: auto;
+    white-space: pre-wrap; /* Allows wrapping for large JSON files */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* Table Styling for CSV display */
+#csv-display table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#csv-display th, #csv-display td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+#csv-display th {
+    background-color: #2c3e50;
+    color: white;
+}
+
+#csv-display tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#csv-display tr:hover {
+    background-color: #f1f1f1;
+}
+/* Output Display Styling */
+.output-display {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    overflow-x: auto;
+    white-space: pre-wrap; /* Allows wrapping for large JSON files */
+    font-family: 'Courier New', Courier, monospace;
+    font-size:
