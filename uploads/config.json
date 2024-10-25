@@ -1,0 +1,12 @@
+
+{
+  "initial_atl": 60.0,
+  "initial_ctl": 39.0,
+  "num_weeks": 20,
+  "long_run_pace": 7.5,
+  "tempo_run_pace": 6.3,
+  "long_run_duration": 60,
+  "tempo_run_duration": 45,
+  "start_date": "2024-10-13",
+  "end_date": "2025-02-20"
+}
