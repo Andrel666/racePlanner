@@ -130,19 +130,27 @@ def calculate_fitness_from_history(historical_runs):
     last_long_run_duration = 10  # Default long run duration (in minutes)
     last_tempo_run_duration = 10  # Default tempo run duration (in minutes)
 
+    today = datetime.now()
+    week_start = today - timedelta(days=today.weekday())  # Start of the current week (Monday)
+    week_end = week_start + timedelta(days=6)  # End of the current week (Sunday)
+
     # Loop through each historical run and update ATL and CTL
     for run in historical_runs:
-        trimp = run['trimp']
-        atl, ctl, _ = update_fitness_fatigue(atl, ctl, trimp)
-        total_trimp += trimp
+        #get Here only from previous week
+        run_date = run['date']
 
-        # Check if the run type is 'long_run' and update long run data accordingly
-        if run.get('run_type') == 'long_run':
-            last_long_run_pace = run['pace']
-            last_long_run_duration = run['duration']
-        elif run.get('run_type') == 'tempo_run_1':
-            last_tempo_run_pace = run['pace']
-            last_tempo_run_duration = run['duration']
+        if run_date < week_start :
+            trimp = run['trimp']
+            atl, ctl, _ = update_fitness_fatigue(atl, ctl, trimp)
+            total_trimp += trimp
+
+            # Check if the run type is 'long_run' and update long run data accordingly
+            if run.get('run_type') == 'long_run':
+                last_long_run_pace = run['pace']
+                last_long_run_duration = run['duration']
+            elif run.get('run_type') == 'tempo_run_1':
+                last_tempo_run_pace = run['pace']
+                last_tempo_run_duration = run['duration']
 
     return atl, ctl, last_long_run_pace, last_long_run_duration, last_tempo_run_duration
 
@@ -306,17 +314,25 @@ def add_historical_runs_to_plan(training_plan, start_date, current_week, histori
     Add historical runs to the training plan for each week from week 1 to the current_week
     based on whether the run date falls within the week.
     """
+    # remove entries before the current week
 
+    training_plan = [entry for entry in training_plan if entry['week'] != current_week - 1]
     # Iterate from week 1 to the current week
     for week_num in range(1, current_week + 1):
         # Calculate the start and end dates for this week
         week_start, week_end = calculate_week_start_end_dates(start_date, week_num)
 
-        week_data = {
-            'week': week_num,
-            'week_sunday': week_end.strftime('%Y-%m-%d'),  # The end of the week is Sunday
-            'plan': []
-        }
+
+        if (week_num != current_week):
+                week_data = {
+                'week': week_num,
+                'week_sunday': week_end.strftime('%Y-%m-%d'),  # The end of the week is Sunday
+                'plan': []
+            }
+        else:
+            for entry in training_plan:
+                if entry['week'] == week_num:
+                    week_data =  entry
 
         # Filter historical runs that belong to this week based on the run date
         runs_for_this_week = [
@@ -328,7 +344,7 @@ def add_historical_runs_to_plan(training_plan, start_date, current_week, histori
         for run in runs_for_this_week:
             # Format each run (e.g., duration, pace, etc.)
             formatted_run = {
-                'type': run['run_type'],
+                'type': f"Past Run ({run['run_type']})",
                 'duration': run['duration'],  # Assume duration is already formatted
                 'avg_power': run['avg_power'],
                 'avg_hr': run['avg_hr'],
@@ -339,7 +355,8 @@ def add_historical_runs_to_plan(training_plan, start_date, current_week, histori
             week_data['plan'].append(formatted_run)
 
         # Append the weekly data to the training plan
-        training_plan.append(week_data)
+        if (week_num != current_week):
+            training_plan.append(week_data)
 
     return training_plan
 
@@ -393,7 +410,7 @@ def simulate_training_plan(config=None, historical_runs=None):
 
     #Add History
     start_date = config['start_date']
-    current_week = get_current_week(start_date) - 1
+    current_week = get_current_week(start_date)
     training_plan = add_historical_runs_to_plan(training_plan, start_date, current_week, historical_runs)
     training_plan = sorted(training_plan, key=lambda x: x['week'])
 
@@ -422,9 +439,6 @@ def format_time(minutes, is_pace=False):
 
 
 # Function to calculate the date of the Sunday for a given week number
-from datetime import datetime, timedelta
-
-
 def calculate_sunday_date(start_date, week_num):
     # Check if start_date is a string and convert it to a datetime object if necessary
     if isinstance(start_date, str):
@@ -433,8 +447,10 @@ def calculate_sunday_date(start_date, week_num):
         except ValueError:
             raise ValueError(f"Invalid date format for start_date: {start_date}. Expected format: YYYY-MM-DD.")
 
+    days_to_sunday = start_date.weekday() +1 # Sunday is 0, Monday is 1, etc.
+    sunday= start_date - timedelta(days=days_to_sunday)
     # Calculate the date for the specified week number
-    return start_date + timedelta(weeks=week_num - 1)
+    return sunday + timedelta(weeks=week_num - 1)
 
 
 def format_results(training_plan, start_date):
